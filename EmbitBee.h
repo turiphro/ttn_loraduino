@@ -23,17 +23,17 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    const uint16_t Device_information_ =(0<<8|80);
-    const uint16_t Device_information_EBI                          =(0<<8|10);
-      const uint16_t Device_information_EBI_Protocol               =(0<<8|8);
-        const uint16_t Device_information_EBI_Protocol_Family        =(0<<8|4);
-        const uint16_t Device_information_EBI_Protocol_Family_Variant  =(4<<8|4);
+   const uint16_t Device_information_EBI                          = (0<<8|10);
+   const uint16_t Device_information_EBI_Protocol                 = (0<<8|8);
+   const uint16_t Device_information_EBI_Protocol_Family          = (0<<8|4);
+   const uint16_t Device_information_EBI_Protocol_Family_Variant  = (4<<8|4);
 
-    const uint16_t Device_information_Embit_Module               =(8<<8|8);
-      const uint16_t Device_information_Embit_Module_Family              =(8<<8|4);
-      const uint16_t Device_information_Embit_Module_Model               =(12<<8|2);
-      const uint16_t Device_information_Embit_Module_Revision            =(14<<8|2);
+   const uint16_t Device_information_Embit_Module                  = (8<<8|8);
+   const uint16_t Device_information_Embit_Module_Family           = (8<<8|4);
+   const uint16_t Device_information_Embit_Module_Model            = (12<<8|2);
+   const uint16_t Device_information_Embit_Module_Revision         = (14<<8|2);
   
-    const uint16_t Device_information_Embit_UUID                 =(16<<8|64);
+   const uint16_t Device_information_Embit_UUID                    = (16<<8|64);
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    struct received_data{
@@ -42,34 +42,33 @@ public:
    }received_data;
 
    enum Command{
-    Device_information      =0x01,
-     
-    Device_state            =0x04,
-    Reset               =0x05,
-    Firmwareersion            =0x06,
-    Restore_to_factory_default_settings =0x07,
-    Save_settings           =0x08,
-    Serial_port_configuration     =0x09,
-    Output_power            =0x10,
-    Operating_channel         =0x11,
+    Device_information         = 0x01,
+    Device_state               = 0x04,
+    Reset                      = 0x05,
+    Firmwareersion             = 0x06,
+    Restore_to_factory_default_settings = 0x07,
+    Save_settings              = 0x08,
+    Serial_port_configuration  = 0x09,
+    Output_power               = 0x10,
+    Operating_channel          = 0x11,
     
-    Physical_address          =0x20,
-    Network_address           =0x21,
-    Network_identifier          =0x22,
-    Network_role            =0x23,
-    Network_automated_settings      =0x24,
-    Network_preferences         =0x25,
-    Network_security          =0x26,
+    Physical_address           = 0x20,
+    Network_address            = 0x21,
+    Network_identifier         = 0x22,
+    Network_role               = 0x23,
+    Network_automated_settings = 0x24,
+    Network_preferences        = 0x25,
+    Network_security           = 0x26,
   
     Network_security_AppKey,
     Network_security_NwkSKey,
     Network_security_AppSKey,
    
-    Network_stop            =0x30,
-    Network_start           =0x31,
+    Network_stop               = 0x30,
+    Network_start              = 0x31,
   
-    Send_data             =0x50,
-    Received_data           =0x60,
+    Send_data                  = 0x50,
+    Received_data              = 0x60,
    };
 
    
@@ -91,8 +90,14 @@ public:
 
   uint32_t max_wait_sequence=300;  //wait time until data sequence is received in ms
   uint32_t max_wait_received=1000; //wait time until data is received in ms
+  // Ruud: since we are not Acking anything, there is no need to wait.
+  //       But, setting to for example 30 sec does not help, after 30 sec the 
+  //       module is not ready to send again. Also setting max_retries to an other
+  //       value does not lower the retries.
   uint32_t max_wait_received_send=60000; //wait time until data with ACK is received in ms
   uint32_t max_retries=3;
+  //uint32_t max_wait_received_send=30000; //wait time until data with ACK is received in ms
+  //uint32_t max_retries=1;
 
   
   //NETWORK_PREFERENCES()/////////////////////////////////////////////////////////
@@ -141,7 +146,9 @@ public:
    uint8_t size;
 
    bool LoraWAN      =true; //0 = LoRaEMB (private network) 1 = LoRaWAN (public network)
+   // Ruud Req_ACK true/false lijkt geen verschil te maken
    bool Req_ACK      =true;//0 = Disable ACK 1 = Enable ACK
+   //bool Req_ACK      =false;//0 = Disable ACK 1 = Enable ACK
    bool ADR          =false; //0 = disable ADR (Adaptive Data Rate) 1 = enable ADR (Adaptive Data Rate)
    
    uint8_t FPort=0x06;
