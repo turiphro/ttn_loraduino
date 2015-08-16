@@ -11,12 +11,13 @@ using namespace std;
 #define WATER_SENSOR   4
 #define WATER_LED      LED1
 #define WAKE_LED       LED2
+#define BEE_POWER      20
 
 /* Keep track of each individual measurement */
 uint32_t counter = 0; 
 
 void initJson(JsonObject& root)
-{ root["name"]    = "Jansen"; }
+{ root["name"]    = "Taaaatuuuu"; }
 
 /* long strings cause trouble in emBit lib ??*/
 void toAirTest()
@@ -66,7 +67,9 @@ void setup()
   pinMode(WATER_LED,    OUTPUT);
   pinMode(WAKE_LED,     OUTPUT);
   pinMode(WATER_SENSOR, INPUT);
+  pinMode(BEE_POWER,    OUTPUT);
 
+  digitalWrite(BEE_POWER, HIGH);
   digitalWrite(WATER_LED, LOW);
   digitalWrite(WAKE_LED,  HIGH);
 
