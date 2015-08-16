@@ -6,7 +6,7 @@ using namespace std;
 
 /* Define the environment variables. */
 #define JSON_SIZE      256
-#define SLEEP_TIME     120000
+#define SLEEP_TIME     1000
 #define WAKE_TIME      1000
 #define WATER_SENSOR   4
 #define WATER_LED      LED1
