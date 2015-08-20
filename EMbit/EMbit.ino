@@ -4,20 +4,36 @@
 
 using namespace std;
 
+/* Define device (choose one) */
+#define DEVICE_TATU
+//#define DEVICE_MBILI
+
 /* Define the environment variables. */
 #define JSON_SIZE      256
 #define SLEEP_TIME     120000
 #define WAKE_TIME      1000
-#define WATER_SENSOR   6
 #define WATER_LED      LED1
 #define WAKE_LED       LED2
+
+#ifdef DEVICE_TATU
+#define DEVICE_NAME    "Tatu"
+#define WATER_SENSOR   6
 #define BEE_POWER      20
+#endif
+
+#ifdef DEVICE_MBILI
+#define DEVICE_NAME    "Mbili"
+#define WATER_SENSOR   4
+//byte NetAddr[4] = {0xAA, 0xFF, 0x01, 0x01}; // not sure if this works (see below)
+#endif
 
 /* Keep track of each individual measurement */
 uint32_t counter = 0; 
 
 void initJson(JsonObject& root)
-{ root["name"]    = "Taaaatuuuu"; }
+{
+  root["name"] = DEVICE_NAME;
+}
 
 /* long strings cause trouble in emBit lib ??*/
 void toAirTest()
@@ -46,11 +62,13 @@ void toAirNat()
 
 /* Call this to send off your json */
 void toAir(JsonObject& root)
-{ char buff[JSON_SIZE];
+{
+  char buff[JSON_SIZE];
   root.printTo(buff, sizeof(buff));
   int len = root.measureLength();
-  Serial.write(embitbee.write((uint8_t*) buff, len)); 
-  Serial.flush(); }
+  embitbee.write((uint8_t*) buff, len);
+  //Serial.flush();
+}
 
   
 
@@ -62,9 +80,12 @@ void setup()
   pinMode(WATER_LED,    OUTPUT);
   pinMode(WAKE_LED,     OUTPUT);
   pinMode(WATER_SENSOR, INPUT);
+  
+#ifdef DEVICE_TATU
   pinMode(BEE_POWER,    OUTPUT);
-
   digitalWrite(BEE_POWER, HIGH);
+#endif
+  
   digitalWrite(WATER_LED, LOW);
   digitalWrite(WAKE_LED,  HIGH);
 
@@ -72,6 +93,7 @@ void setup()
   Serial1.begin(9600);  
   Serial.println("Booting");
   embitbee.init();
+  //memcpy(embitbee.NETWORK_address.Address, NetAddr, sizeof(NetAddr)); // doesn't work?
   Serial.println("Initialised");
   
   delay(WAKE_TIME);
@@ -153,6 +175,7 @@ void loop()
       Serial.println("SENDING");
       Serial.println(inWater);
       send_measurement(inWater);
+      Serial.println("Sent.");
       state = 3;
       last_timestamp = millis();
       break;
