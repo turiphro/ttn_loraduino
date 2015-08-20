@@ -6,9 +6,9 @@ using namespace std;
 
 /* Define the environment variables. */
 #define JSON_SIZE      256
-#define SLEEP_TIME     1000
+#define SLEEP_TIME     120000
 #define WAKE_TIME      1000
-#define WATER_SENSOR   4
+#define WATER_SENSOR   6
 #define WATER_LED      LED1
 #define WAKE_LED       LED2
 #define BEE_POWER      20
@@ -58,12 +58,7 @@ void toAir(JsonObject& root)
    The green led should blink once to signal everything
    is okay. */
 void setup() 
-{ StaticJsonBuffer<JSON_SIZE> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
-
-  initJson(root);
-  root["count"] = counter++;
-
+{
   pinMode(WATER_LED,    OUTPUT);
   pinMode(WAKE_LED,     OUTPUT);
   pinMode(WATER_SENSOR, INPUT);
@@ -75,25 +70,42 @@ void setup()
 
   Serial.begin(9600);
   Serial1.begin(9600);  
-  Serial.write(embitbee.init());
-  toAir(root);
-  //toAirInit();
+  Serial.println("Booting");
+  embitbee.init();
+  Serial.println("Initialised");
   
   delay(WAKE_TIME);
-  digitalWrite(WAKE_LED,  LOW); }
+  digitalWrite(WAKE_LED,  LOW);
+}
 
+
+bool measure() {
+  // get average of 10 measurements
+  int trues = 0;
+  int falses = 0;
+  for (int i=0; i<10; i++) {
+    if (digitalRead(WATER_SENSOR))
+      trues++;
+    else
+      falses++;
+    delay(1);
+  }
+  bool inWater = (trues > falses);
+
+  return inWater;
+}
 
 /* Read the water sensor and send the result to 
    the server. The counter can be used to check for double
    transmissions. Since we have no internal temperature sensor
    in the 1248P this value is zero. The power level measurement
    can be added later. */
-void measure()
-{ StaticJsonBuffer<JSON_SIZE> jsonBuffer;
+void send_measurement(bool inWater)
+{
+  StaticJsonBuffer<JSON_SIZE> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   initJson(root);
-  bool inWater = !digitalRead(WATER_SENSOR);
-  digitalWrite(WATER_LED, inWater);
+
   root["count"] = counter++;
   root["water"] = inWater;
   //root["temp"]  = 0;
@@ -107,13 +119,58 @@ void measure()
 
 /* Perform periodic measurements. 
    TODO: put the processor in deep sleep in between. */
+int state = 0;
+long last_timestamp = 0;
+bool inWater = 0;
+
 void loop() 
-{ delay(SLEEP_TIME);
-  digitalWrite(WAKE_LED, HIGH);
-  measure();
-  delay(WAKE_TIME);
-  digitalWrite(WATER_LED, LOW);
-  digitalWrite(WAKE_LED,  LOW); }
+{ 
+  /*
+  bool reading = digitalRead(WATER_SENSOR);
+  digitalWrite(WATER_LED, reading);
+  Serial.write(reading);
+  */
+  inWater = measure();
+  digitalWrite(WATER_LED, inWater);
+  
+  switch (state) {
+    case 0:
+      last_timestamp = millis();
+      state = 1;
+      break;
+    case 1:
+      // SLEEPING
+      if (millis() - last_timestamp > SLEEP_TIME) {
+        state = 2;
+        last_timestamp = millis();
+        Serial.println("STATE 2");
+      }
+      break;
+
+    case 2:
+      // SENDING
+      digitalWrite(WAKE_LED, HIGH);
+      Serial.println("SENDING");
+      Serial.println(inWater);
+      send_measurement(inWater);
+      state = 3;
+      last_timestamp = millis();
+      break;
+
+    case 3:
+      // WAKING
+      if (millis() - last_timestamp > WAKE_TIME) {
+        Serial.println("STATE 1");
+        state = 1;
+        last_timestamp = millis();
+        digitalWrite(WAKE_LED,  LOW);
+      }
+    
+    default:
+      state = 0;
+      break;
+  }
+}
 
 
 
